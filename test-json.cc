@@ -77,8 +77,10 @@ public:
 	    _imp_type.json_int = std::move(jvalue);
 	    break;
 	case JSON_NUMBER:
+	    _imp_data.json_number = rvalue._imp_data.json_number;
 	    break;
 	case JSON_STRING:
+	    _imp_data.json_string = rvalue._imp_data.json_string;
 	    break;
 	case JSON_ARRAY:
 	    break;
@@ -87,8 +89,13 @@ public:
 	case JSON_NULL:
 	    break;
 	case JSON_TRUE:
+	    out << "true";
 	    break;
 	case JSON_FALSE:
+	    out << "false";
+	    break;
+	case JSON_NULL:
+	    out << "null";
 	    break;
 	default:
 	    break;
@@ -131,12 +138,6 @@ private:
     } _imp_type;
 };
 
-template<class T>
-void print_map(std::map<std::string, Jvalue<T>> &name)
-{
-    std::cout << "name: " << name["name"] << '\n';
-}
-
 int main(void)
 {
     // json_int INT(26);
@@ -166,7 +167,7 @@ int main(void)
     // std::map<std::string, Json_value> map2;
 
     // map2["name"] = 37;
-
+    json_value jvalue;
     json_value json_int(10);
     json_value json_number(3.144);
     json_value json_string("json");
