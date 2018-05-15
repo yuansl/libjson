@@ -87,8 +87,13 @@ public:
 	case JSON_NULL:
 	    break;
 	case JSON_TRUE:
+	    out << "true";
 	    break;
 	case JSON_FALSE:
+	    out << "false";
+	    break;
+	case JSON_NULL:
+	    out << "null";
 	    break;
 	default:
 	    break;
@@ -166,7 +171,7 @@ int main(void)
     // std::map<std::string, Json_value> map2;
 
     // map2["name"] = 37;
-
+    json_value jvalue;
     json_value json_int(10);
     json_value json_number(3.144);
     json_value json_string("json");
