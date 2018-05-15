@@ -60,16 +60,27 @@ class Jarray {
 class json_value {
 public:
     json_value() : _imp_data{.json_null=nullptr}, _Imp_jtype(JSON_NULL) {}
-    json_value(int integer) : _imp_data{.json_number=integer}, _Imp_jtype(JSON_NUMBER) {}
+    json_value(int integer) : _imp_data{.json_int=integer}, _Imp_jtype(JSON_INT) {}
     json_value(double number) : _imp_data{.json_number=number}, _Imp_jtype(JSON_NUMBER) {}
     json_value(std::string str) : _imp_data{.json_string=str}, _Imp_jtype(JSON_STRING) {}
-    json_value(bool boolean) : _imp_data{.json_true=boolean}, _Imp_jtype(JSON_TRUE) { if (!boolean) {_imp_data.json_false = false; _Imp_jtype=JSON_FALSE;} }
+    json_value(bool boolean) : _imp_data{.json_true=boolean}, _Imp_jtype(JSON_TRUE) {
+	if (!boolean) {
+	    _imp_data.json_false = false;
+	    _Imp_jtype=JSON_FALSE;
+	}
+    }
     json_value(nullptr_t null) : _imp_data{.json_null=null}, _Imp_jtype(JSON_NULL) {}
 
+    json_value(const json_value &rvalue) {
+    }
+    
     json_value &operator=(const json_value &rvalue) {
 	switch (rvalue._Imp_jtype) {
 	case JSON_NUMBER:
 	    _imp_data.json_number = rvalue._imp_data.json_number;
+	    break;
+	case JSON_INT:
+	    _imp_data.json_int = rvalue._imp_data.json_int;
 	    break;
 	case JSON_STRING:
 	    _imp_data.json_string = rvalue._imp_data.json_string;
@@ -77,49 +88,59 @@ public:
 	case JSON_TRUE:
 	    _imp_data.json_true = rvalue._imp_data.json_true;
 	    break;
-	}
-	return *this;
-    }
-
-    friend std::ostream &operator<<(std::ostream &out, json_value &jvalue) {
-	switch (jvalue._Imp_jtype) {
-	case JSON_NUMBER:
-	    out << jvalue._imp_data.json_number;
-	    break;
-	case JSON_STRING:
-	    out << jvalue._imp_data.json_string;
-	    break;
-	case JSON_TRUE:
-	    out << "true";
-	    break;
 	case JSON_FALSE:
-	    out << "false";
-	    break;
-	case JSON_NULL:
-	    out << "null";
+	    _imp_data.json_false = rvalue._imp_data.json_false;
 	    break;
 	default:
 	    break;
 	}
-	return out;
+	return *this;
+    }
+    
+    friend std::ostream &operator<<(std::ostream &out, const json_value &jvalue)
+    {
+    switch (jvalue._Imp_jtype) {
+    case json_value::JSON_NUMBER:
+	out << jvalue._imp_data.json_number;
+	break;
+    case json_value::JSON_STRING:
+	out << jvalue._imp_data.json_string;
+	break;
+    case JSON_TRUE:
+	out << "true";
+	break;
+    case JSON_FALSE:
+	out << "false";
+	break;
+    case JSON_NULL:
+	out << "null";
+	break;
+    default:
+	break;
+    }
+    return out;
     }
 
 private:
     union _Imp_type {
-	int json_type;
-	double json_number;
-	bool json_true;
-	bool json_false;
+	_Imp_type() : json_null{nullptr} {}
 	std::string json_string;
-	nullptr_t json_null;
 	Jsobject json_object;
 	Jarray  json_array;
+	
+	double json_number;
+	int json_int;
+	bool json_true;
+	bool json_false;
+	nullptr_t json_null;
+	
 	~_Imp_type() {}
     } _imp_data;
 
     enum json_type {
 	JSON_STRING,		// -> std::string
 	JSON_NUMBER,		// -> double
+	JSON_INT,		// -> int
 	JSON_OBJECT,		// std::map<std::string, Jvalue>
 	JSON_ARRAY,		// std::tuple<Jvalue,...>
 	JSON_TRUE,		// -> true
@@ -130,35 +151,8 @@ private:
 
 int main(void)
 {
-    // json_int INT(26);
-    // json_double NUMBER(2.33);
-    // json_string name("myname");
-    
-    // INT.show_value();
-    // NUMBER.show_value();
-    // name.show_value();
-
-    // std::map<std::string, json_int> person;
-    // person["age"] = INT;
-    // std::cout << person["age"] << '\n';
-
-    // Jobject<json_string> json;
-    // json["name"] = "yuansl";
-    // json["age"] = 26;
-    // json["is_dead"] = true;
-    // json["extra_object"] = nullptr;
-    // json["height"] = 1.75;
-    // INT = 37;
-    // INT.show_value();
-    // std::map<std::string, json_string> map1;
-    // map1["name"] = name;
-    // print_map(map1);
-
-    // std::map<std::string, Json_value> map2;
-
-    // map2["name"] = 37;
     json_value jvalue;
-    json_value json_int(10);
+    json_value json_int = 10;
     json_value json_number(3.44);
     json_value json_null(nullptr);
     json_value json_true(true);
@@ -172,8 +166,13 @@ int main(void)
 	      << json_false << '\n'
 	      << json_string << '\n'
 	      << jvalue << '\n';
+    
     std::map<std::string, json_value> map1;
 
     map1["name"] = "yuansl";
+    map1["age"] = 26;
+    map1["extra_object"] = nullptr;
+    map1["is_male"] = true;
+    map1["is_programmer"] = false;
     return 0;
 }
