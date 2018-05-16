@@ -139,37 +139,9 @@ private:
 
 int main(void)
 {
-    // json_int INT(26);
-    // json_double NUMBER(2.33);
-    // json_string name("myname");
-    
-    // INT.show_value();
-    // NUMBER.show_value();
-    // name.show_value();
-
-    // std::map<std::string, json_int> person;
-    // person["age"] = INT;
-    // std::cout << person["age"] << '\n';
-
-    // Jobject<json_string> json;
-    // json["name"] = "yuansl";
-    // json["age"] = 26;
-    // json["is_dead"] = true;
-    // json["extra_object"] = nullptr;
-    // json["height"] = 1.75;
-    // INT = 37;
-    // INT.show_value();
-    // std::map<std::string, json_string> map1;
-    // map1["name"] = name;
-    // print_map(map1);
-
-    // std::map<std::string, Json_value> map2;
-
-    // map2["name"] = 37;
     json_value jvalue;
-    json_value json_int(10);
-    json_value json_number(3.144);
-    json_value json_string("json");
+    json_value json_int = 10;
+    json_value json_number(3.44);
     json_value json_null(nullptr);
     json_value json_bool(true);
     json_value json_bool2(false);
