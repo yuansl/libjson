@@ -16,6 +16,17 @@ namespace json {
 	JSON_BOOL    // true or false
     };
 
+    const char *__json_type_desc[] = {
+	[JSON_NULL] = "JSON_NULL",
+	[JSON_INT] = "JSON_INT",
+	[JSON_NUMBER] = "JSON_NUMBER",
+	[JSON_CHAR] = "JSON_CHAR",
+	[JSON_STRING] = "JSON_STRING",
+	[JSON_ARRAY] = "JSON_ARRAY",
+	[JSON_OBJECT] = "JSON_OBJECT",
+	[JSON_BOOL] = "JSON_BOOL"
+    };
+
     class json_value;
     class json_object {
     public:
@@ -27,8 +38,7 @@ namespace json {
 	
 	json_object() : _Imp_object() {}
 	json_object(const json_object &rvalue) : _Imp_object(rvalue._Imp_object){}
-	json_object(json_object &&rvalue) : _Imp_object(std::move(rvalue._Imp_object)) {}
-	~json_object() {_Imp_object.~_Imp_type(); }
+	json_object(json_object &&rvalue) : _Imp_object(std::move(rvalue._Imp_object)) { std::cout << __func__ << "(json_object&&)=" << *this << '\n'; }
 	
 	iterator begin() { return _Imp_object.begin(); }
 	iterator end() { return _Imp_object.end(); }
@@ -55,13 +65,14 @@ namespace json {
 	json_value(std::nullptr_t null) : value_type(JSON_NULL), value(null) {}
 	json_value(bool boolean) : value_type(JSON_BOOL), value(boolean) {}
 	json_value(json_object jobj) : value_type(JSON_OBJECT), value(jobj) {
-	    std::cout << __FUNCTION__ << '\n';
+	    std::cout << __FUNCTION__ << "(json_object)\n";
 	}
 	
 	// move constructor
-	json_value(json_value &&rvalue) {}
+	//json_value(json_value &&rvalue) {}
 	json_value(const json_value &rvalue) { *this = rvalue; }
 	json_value &operator=(const json_value &rvalue);
+	json_value &operator=(json_value &&rvalue);
 	
 	enum json_type value_type;
 	union _Imp_type {
@@ -73,9 +84,9 @@ namespace json {
 	    _Imp_type(double d) : json_number(d) {}
 	    _Imp_type(std::nullptr_t null) : json_null(null) {}
 	    _Imp_type(bool boolean) : json_bool(boolean) {}
-	    _Imp_type(json_object jobj) : json_obj(jobj) {
-		std::cout << __func__ << '\n';
-	    }
+	    _Imp_type(json_object jobj) : json_obj(jobj) {}
+	    ~_Imp_type() {}
+	    
 	    char json_char;
 	    int json_int;
 	    double json_number;
@@ -83,12 +94,22 @@ namespace json {
 	    std::nullptr_t json_null;
 	    bool json_bool;
 	    json_object json_obj;
-	    ~_Imp_type() {}
 	} value;
+
 	friend std::ostream &operator<<(std::ostream &out, const json_value &other);
     };
+
+    json_value &json_value::operator=(json_value &&rvalue)
+    {
+	std::cout << __func__ << "::(json_value&&)\n";
+	*this = rvalue;
+	return *this;
+    }
         
     json_value &json_value::operator=(const json_value &rvalue) {
+
+	std::cout << __func__ << "operator=(const json_value&)\n";
+	
 	value_type = rvalue.value_type;
 	switch (rvalue.value_type) {
 	case JSON_NULL:
@@ -101,13 +122,14 @@ namespace json {
 	    value.json_int = rvalue.value.json_int;
 	    break;
 	case JSON_STRING:
+	    new (&value.json_string) std::string;
 	    value.json_string = rvalue.value.json_string;
 	    break;
 	case JSON_OBJECT:
-	{
-	    json_object tmp = rvalue.value.json_obj;
-	    value.json_obj = tmp;
-	}
+	    value.json_obj = rvalue.value.json_obj;
+	    break;
+	case JSON_BOOL:
+	    value.json_bool = rvalue.value.json_bool;
 	    break;
 	default:
 	    break;
@@ -117,7 +139,7 @@ namespace json {
     
     std::ostream &operator<<(std::ostream &out, const json_value &other)
     {
-	out << "type:" << other.value_type << ' ';
+	// out << __json_type_desc[other.value_type] << ' ';
 	switch (other.value_type) {
 	case JSON_CHAR:
 	    out << other.value.json_char;
@@ -160,11 +182,6 @@ namespace json {
     }
 }
 
-void print(const json::json_value &rvalue)
-{
-    std::cout << rvalue << '\n';
-}
-
 int main(void)
 {
     json::json_value integer(3);
@@ -172,25 +189,39 @@ int main(void)
     json::json_value price = 3.44;
     json::json_value is_male = true;
     json::json_value is_dead = false;
-
-    print(integer);
-    print(name);
-    print(price);
-    print(is_male);
-    print(is_dead);
-    
     json::json_object obj2;
+    json::json_value name2;
+    
+    name2 = name;
 
-    obj2["info"] = name;
-    // std::cout << obj2 << '\n';
+    // union Jvalue {
+    // 	Jvalue() {}
+    // 	Jvalue(std::string str) : s(str) {}
+    // 	Jvalue &operator=(const Jvalue &rvalue) {
+    // 	    this->s = rvalue.s;
+    // 	    return *this;
+    // 	}
+    // 	int i;
+    // 	std::string s;
+    // 	~Jvalue() {}
+    // };
+    // std::string s = "hello";
+    // Jvalue jvalu2(s);
+    // Jvalue jvalue;
+    // jvalue = jvalu2;
+
+    // std::cout << jvalue.s << '\n';
+
+    // std::cout << "name2=" << name2 << '\n';
+
+    // obj2["info"] = name;
+    // std::cout << "obj2=" << obj2 << '\n';
 
     // json::json_object obj3 = std::move(obj2);
-    // std::cout << "obj3=" << obj3 << '\n'
-    // 	      << "obj2 is empty=" << obj2.empty() << '\n';
+    // std::cout << "obj3=" << obj3 << '\n';
 
     // json::json_value jobj(obj3);
     // std::cout << "json_value jobj=" << jobj << '\n';
-    
     
     // json::json_value extra_info = jobj;
     // std::cout << "extra_info=" << extra_info << '\n';
