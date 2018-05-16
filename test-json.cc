@@ -62,19 +62,19 @@ public:
 
 class json_value {
 public:
-    json_value() : jvalue_type(JSON_NULL), _imp_type{.json_null=nullptr} {}
-    json_value(int integer) : jvalue_type(JSON_INT), _imp_type{.json_int=integer} {}
-    json_value(double number) : jvalue_type(JSON_NUMBER), _imp_type{.json_number=number} {}
-    json_value(std::string str) : jvalue_type(JSON_STRING), _imp_type{.json_string=str} {}
-    json_value(const char *str) : jvalue_type(JSON_STRING), _imp_type{.json_string=str} {}
+    json_value() : jvalue_type(JSON_NULL), _imp_data{.json_null=nullptr} {}
+    json_value(int integer) : jvalue_type(JSON_INT), _imp_data{.json_int=integer} {}
+    json_value(double number) : jvalue_type(JSON_NUMBER), _imp_data{.json_number=number} {}
+    json_value(std::string str) : jvalue_type(JSON_STRING), _imp_data{.json_string=str} {}
+    json_value(const char *str) : jvalue_type(JSON_STRING), _imp_data{.json_string=str} {}
     
-    // json_value &operator=(std::string &&str) { _imp_type.json_string = std::move(str); return *this; }
-    // json_value &operator=(const char* &&str) { _imp_type.json_string = std::move(std::string(str)); return *this; }
+    // json_value &operator=(std::string &&str) { _imp_data.json_string = std::move(str); return *this; }
+    // json_value &operator=(const char* &&str) { _imp_data.json_string = std::move(std::string(str)); return *this; }
 
     json_value &operator=(json_value &&jvalue) {
 	switch (jvalue.jvalue_type) {
 	case JSON_INT:
-	    _imp_type.json_int = std::move(jvalue);
+	    _imp_data.json_int = jvalue._imp_data.json_int;
 	    break;
 	case JSON_NUMBER:
 	    _imp_data.json_number = rvalue._imp_data.json_number;
@@ -86,8 +86,6 @@ public:
 	    break;
 	case JSON_OBJECT:
 	    break;
-	case JSON_NULL:
-	    break;
 	case JSON_TRUE:
 	    out << "true";
 	    break;
@@ -97,20 +95,22 @@ public:
 	case JSON_NULL:
 	    out << "null";
 	    break;
+	case JSON_NULL:
+	    break;
 	default:
 	    break;
 	}
 	return *this;
     }
-    json_value(bool boolean=true) : jvalue_type(JSON_TRUE), _imp_type{.json_bool=boolean} { if (!boolean) jvalue_type=JSON_FALSE; }
-    json_value(nullptr_t null) : jvalue_type(JSON_NULL), _imp_type{.json_null=null} {}
+    json_value(bool boolean) : jvalue_type(JSON_TRUE), _imp_data{.json_bool=boolean} { if (!boolean) jvalue_type=JSON_FALSE; }
+    json_value(nullptr_t null) : jvalue_type(JSON_NULL), _imp_data{.json_null=null} {}
     json_value(json_array array);
     json_value(json_object jobj);
 
     friend std::ostream &operator<<(std::ostream &out, json_value &jvalue) {
 	return out;
     }
-    
+private:
     enum Jvalue_type {
 	JSON_INT,
 	JSON_NUMBER,		// -> double
@@ -122,7 +122,6 @@ public:
 	JSON_NULL		// -> nullptr
     } jvalue_type;
     
-private:
     union _Imp_type {
 	~_Imp_type() {}
 	
@@ -135,7 +134,7 @@ private:
 	std::string json_string;
 	bool json_bool;
 	nullptr_t json_null;
-    } _imp_type;
+    } _imp_data;
 };
 
 int main(void)
@@ -174,6 +173,7 @@ int main(void)
     json_value json_null(nullptr);
     json_value json_bool(true);
     json_value json_bool2(false);
+    json_value json_num = 3.44;
 
     std::map<std::string, json_value> map2;
     map2["name"] = "yuansl";
@@ -182,20 +182,12 @@ int main(void)
     map2["is_tall"] = false;
     map2["extra_info"] = nullptr;
 
-    // for (auto &item : map2)
-    // 	std::cout << "key=" << item.first << " value=" << item.second << '\n';
-
-    // union value_type {
-    // 	double number;
-    // 	int integer;
-    // 	std::string jstr;
-    // 	~value_type() {}
-    // } value = {.jstr="jsonstring"};
-
-    // std::cout << value.jstr << '\n';
-    // value.number = 3.144;
-    // std::cout << value.number << '\n';
-
+    union value_type {
+    	double number;
+    	int integer;
+    	std::string jstr;
+    	~value_type() {}
+    } value = {.jstr="jsonstring"};
     
     return 0;
 }
