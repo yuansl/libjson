@@ -6,6 +6,7 @@
 
 namespace json {
     enum json_type {
+	JSON_EMPTY,  // empty object
 	JSON_NULL,   // null
 	JSON_INT,    // 000
 	JSON_NUMBER, // 000.000
@@ -17,6 +18,7 @@ namespace json {
     };
 
     const char *__json_type_desc[] = {
+	[JSON_EMPTY] = "JSON_EMPTY",
 	[JSON_NULL] = "JSON_NULL",
 	[JSON_INT] = "JSON_INT",
 	[JSON_NUMBER] = "JSON_NUMBER",
@@ -37,8 +39,12 @@ namespace json {
 	typedef _Imp_type::const_iterator const_iterator;
 	
 	json_object() : _Imp_object() {}
-	json_object(const json_object &rvalue) : _Imp_object(rvalue._Imp_object){}
-	json_object(json_object &&rvalue) : _Imp_object(std::move(rvalue._Imp_object)) { std::cout << __func__ << "(json_object&&)=" << *this << '\n'; }
+	json_object(const json_object &rvalue) : _Imp_object(rvalue._Imp_object){
+	    // std::cout << __PRETTY_FUNCTION__ << '\n';
+	}
+	json_object(json_object &&rvalue) : _Imp_object(std::move(rvalue._Imp_object)) {
+	    // std::cout << __PRETTY_FUNCTION__ << '\n';
+	}
 	
 	iterator begin() { return _Imp_object.begin(); }
 	iterator end() { return _Imp_object.end(); }
@@ -57,20 +63,23 @@ namespace json {
     };
     
     struct json_value {
-	json_value() : value() {}
+	json_value() : value_type(JSON_EMPTY), value() {}
 	json_value(double number) : value_type(JSON_NUMBER), value(number) {}
 	json_value(int integer) : value_type(JSON_INT), value(integer) {}
 	json_value(const char *str) : value_type(JSON_STRING), value(str) {}
-	json_value(std::string str) : value_type(JSON_STRING), value(str) {}
+	json_value(std::string &str) : value_type(JSON_STRING), value(str) {}
 	json_value(std::nullptr_t null) : value_type(JSON_NULL), value(null) {}
 	json_value(bool boolean) : value_type(JSON_BOOL), value(boolean) {}
-	json_value(json_object jobj) : value_type(JSON_OBJECT), value(jobj) {
-	    std::cout << __FUNCTION__ << "(json_object)\n";
+	json_value(json_object &jobj) : value_type(JSON_OBJECT), value(jobj) {
+	    // std::cout << __PRETTY_FUNCTION__ << "::this=" << *this << '\n';
 	}
 	
 	// move constructor
 	//json_value(json_value &&rvalue) {}
-	json_value(const json_value &rvalue) { *this = rvalue; }
+	json_value(const json_value &rvalue) : value_type(rvalue.value_type) {
+	    *this = rvalue;
+	    // std::cout << __PRETTY_FUNCTION__ << "::rvalue=" << rvalue << '\n';
+	}
 	json_value &operator=(const json_value &rvalue);
 	json_value &operator=(json_value &&rvalue);
 	
@@ -80,11 +89,13 @@ namespace json {
 	    _Imp_type(int i) : json_int(i) {}
 	    _Imp_type(char c) : json_char(c) {}
 	    _Imp_type(const char *name) : json_string(name) {}
-	    _Imp_type(std::string name) : json_string(name) {}
+	    _Imp_type(std::string &name) : json_string(name) {}
 	    _Imp_type(double d) : json_number(d) {}
 	    _Imp_type(std::nullptr_t null) : json_null(null) {}
 	    _Imp_type(bool boolean) : json_bool(boolean) {}
-	    _Imp_type(json_object jobj) : json_obj(jobj) {}
+	    _Imp_type(json_object &jobj) : json_obj(jobj) {
+		// std::cout << __PRETTY_FUNCTION__ << '\n';
+	    }
 	    ~_Imp_type() {}
 	    
 	    char json_char;
@@ -101,14 +112,15 @@ namespace json {
 
     json_value &json_value::operator=(json_value &&rvalue)
     {
-	std::cout << __func__ << "::(json_value&&)\n";
+	// std::cout << __PRETTY_FUNCTION__ << ":::::" << rvalue;
+	
 	*this = rvalue;
 	return *this;
     }
         
     json_value &json_value::operator=(const json_value &rvalue) {
 
-	std::cout << __func__ << "operator=(const json_value&)\n";
+	// std::cout << __PRETTY_FUNCTION__ << "\n";
 	
 	value_type = rvalue.value_type;
 	switch (rvalue.value_type) {
@@ -122,10 +134,11 @@ namespace json {
 	    value.json_int = rvalue.value.json_int;
 	    break;
 	case JSON_STRING:
-	    new (&value.json_string) std::string;
+	    new (&value.json_string) std::string; // it needed to active another member
 	    value.json_string = rvalue.value.json_string;
 	    break;
 	case JSON_OBJECT:
+	    new (&value.json_obj) json_object;
 	    value.json_obj = rvalue.value.json_obj;
 	    break;
 	case JSON_BOOL:
@@ -139,7 +152,6 @@ namespace json {
     
     std::ostream &operator<<(std::ostream &out, const json_value &other)
     {
-	// out << __json_type_desc[other.value_type] << ' ';
 	switch (other.value_type) {
 	case JSON_CHAR:
 	    out << other.value.json_char;
@@ -174,13 +186,18 @@ namespace json {
     std::ostream &operator<<(std::ostream &out, const json_object &rvalue)
     {
 	out << '{';
-	for (auto &item : rvalue._Imp_object)
-	    out << '"' << item.first << '"' << ':' << item.second << ',';
+	for (auto it = rvalue._Imp_object.begin(); it != rvalue._Imp_object.end(); it++) {
+	    out << '"' << (*it).first << '"' << ':' << (*it).second;
+	    if (std::next(it) != rvalue._Imp_object.end())
+		out << ',';
+	}
 	out << '}';
 	
 	return out;
     }
 }
+
+json::json_object map1;
 
 int main(void)
 {
@@ -189,49 +206,31 @@ int main(void)
     json::json_value price = 3.44;
     json::json_value is_male = true;
     json::json_value is_dead = false;
+    json::json_value name2;    
     json::json_object obj2;
-    json::json_value name2;
     
-    name2 = name;
+    name = "hh";
+    obj2["info"] = name;
+    std::cout << "obj2=" << obj2 << '\n';
 
-    // union Jvalue {
-    // 	Jvalue() {}
-    // 	Jvalue(std::string str) : s(str) {}
-    // 	Jvalue &operator=(const Jvalue &rvalue) {
-    // 	    this->s = rvalue.s;
-    // 	    return *this;
-    // 	}
-    // 	int i;
-    // 	std::string s;
-    // 	~Jvalue() {}
-    // };
-    // std::string s = "hello";
-    // Jvalue jvalu2(s);
-    // Jvalue jvalue;
-    // jvalue = jvalu2;
+    json::json_object obj3(std::move(obj2));
+    std::cout << "obj3=" << obj3 << '\n';
 
-    // std::cout << jvalue.s << '\n';
+    json::json_value jobj=obj3;
 
-    // std::cout << "name2=" << name2 << '\n';
-
-    // obj2["info"] = name;
-    // std::cout << "obj2=" << obj2 << '\n';
-
-    // json::json_object obj3 = std::move(obj2);
-    // std::cout << "obj3=" << obj3 << '\n';
-
-    // json::json_value jobj(obj3);
-    // std::cout << "json_value jobj=" << jobj << '\n';
+    std::cout << "json_value:jobj=" << jobj << '\n';
     
-    // json::json_value extra_info = jobj;
-    // std::cout << "extra_info=" << extra_info << '\n';
-    // json::json_object map1;
-    // map1["name"] = name;
-    // map1["age"] = integer;
-    // map1["is_male"] = is_male;
-    // map1["is_dead"] = is_dead;
-    // map1["extra_info"] = extra_info;
-    // std::cout << map1 << '\n';
+    json::json_value extra_info = jobj;
+    std::cout << "extra_info=" << extra_info << '\n';
+
+    map1["name"] = name;
+    map1["age"] = integer;
+    map1["is_male"] = is_male;
+    map1["is_dead"] = is_dead;
+    map1["extra_info"] = extra_info;
+    map1["address"] = "Fuxin Road";
+    
+    std::cout << "\n\n\nmap1=" << map1 << '\n';
 
     return 0;
 }
