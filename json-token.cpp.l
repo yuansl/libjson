@@ -1,4 +1,4 @@
-/* -*- mode: c++ -*- */
+/* -*- c++ -*- */
 %{
 #include "json-grammar.tab.hpp"
 %}
