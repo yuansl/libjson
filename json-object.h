@@ -15,19 +15,7 @@ namespace json {
 	JSON_OBJECT, // {}
 	JSON_BOOL    // true or false
     };
-
-    static const char *__json_type_desc[] = {
-	[JSON_EMPTY] = "JSON_EMPTY",
-	[JSON_NULL] = "JSON_NULL",
-	[JSON_INT] = "JSON_INT",
-	[JSON_NUMBER] = "JSON_NUMBER",
-	[JSON_CHAR] = "JSON_CHAR",
-	[JSON_STRING] = "JSON_STRING",
-	[JSON_ARRAY] = "JSON_ARRAY",
-	[JSON_OBJECT] = "JSON_OBJECT",
-	[JSON_BOOL] = "JSON_BOOL"
-    };
-
+    extern const char *__json_type_desc[];
     class json_value;
     class json_object {
     public:
@@ -84,6 +72,8 @@ namespace json {
 	json_value &operator=(const json_value &rvalue);
 	// move assignment operator
 	json_value &operator=(json_value &&rvalue);
+
+	const char *type_of(void);
 	
 	enum json_type value_type;
 	union _Imp_type {
@@ -114,5 +104,5 @@ namespace json {
 	friend std::ostream &operator<<(std::ostream &out, const json_value &other);
     };
 }
-
+extern json::json_object map1;
 #endif

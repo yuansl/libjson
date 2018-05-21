@@ -4,9 +4,24 @@
 #include <map>
 #include <utility>
 
+#include <FlexLexer.h>
+
 #include "json-object.h"
+#include "json-grammar.tab.hh"
 
 namespace json {
+    const char *__json_type_desc[] = {
+	[JSON_EMPTY] = "JSON_EMPTY",
+	[JSON_NULL] = "JSON_NULL",
+	[JSON_INT] = "JSON_INT",
+	[JSON_NUMBER] = "JSON_NUMBER",
+	[JSON_CHAR] = "JSON_CHAR",
+	[JSON_STRING] = "JSON_STRING",
+	[JSON_ARRAY] = "JSON_ARRAY",
+	[JSON_OBJECT] = "JSON_OBJECT",
+	[JSON_BOOL] = "JSON_BOOL"
+    };
+
     json_value &json_value::operator=(json_value &&rvalue)
     {
 	// std::cout << __PRETTY_FUNCTION__ << ":::::" << rvalue;
@@ -45,6 +60,14 @@ namespace json {
 	    break;
 	}
 	return *this;
+    }
+    
+    const char *json_value::type_of(void)
+    {
+	if (JSON_EMPTY <= value_type && value_type <= JSON_BOOL)
+	    return __json_type_desc[value_type];
+	else
+	    return "unknown type";
     }
     
     std::ostream &operator<<(std::ostream &out, const json_value &other)
@@ -93,41 +116,19 @@ namespace json {
 	return out;
     }
 }
-
 json::json_object map1;
+
+FlexLexer *lex_parser = new yyFlexLexer;
+
+int yylex(void)
+{
+    return lex_parser->yylex();
+}
 
 int main(void)
 {
-    json::json_value integer(3);
-    json::json_value name = "John";
-    json::json_value price = 3.44;
-    json::json_value is_male = true;
-    json::json_value is_dead = false;
-    json::json_value name2;    
-    json::json_object obj2;
-    
-    name = "hh";
-    obj2["info"] = name;
-    std::cout << "obj2=" << obj2 << '\n';
-
-    json::json_object obj3(std::move(obj2));
-    std::cout << "obj3=" << obj3 << '\n';
-
-    json::json_value jobj=obj3;
-
-    std::cout << "json_value:jobj=" << jobj << '\n';
-    
-    json::json_value extra_info = jobj;
-    std::cout << "extra_info=" << extra_info << '\n';
-
-    map1["name"] = name;
-    map1["age"] = integer;
-    map1["is_male"] = is_male;
-    map1["is_dead"] = is_dead;
-    map1["extra_info"] = extra_info;
-    map1["address"] = "Fuxin Road";
-    
-    std::cout << "\n\n\nmap1=" << map1 << '\n';
+    /* parser start */
+    yyparse();
 
     return 0;
 }

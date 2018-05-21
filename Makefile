@@ -9,7 +9,7 @@ LEXCPP=flex++
 CPP=cpp
 CPPFLAGS =-I$(HOME)/lib
 LDFLAGS = -L$(HOME)/lib
-LDLIBS = -lutil -lfl
+LDLIBS = -lfl
 
 OBJS = json.o lex.yy.o lex.yy.cc json-grammar.tab.cc json-grammar.tab.o
 
@@ -31,20 +31,23 @@ json-grammar.c: json-grammar.y
 json2: lex.yy.o json-grammar.tab.o
 	$(CXX) -o $@ lex.yy.o json-grammar.tab.o -lfl
 
-json3: lex.yy.o json-grammar.tab.o json3.o 
-	$(CXX) -o $@ lex.yy.o json-grammar.tab.o json3.o -lfl
+json3: lex.yy.o json-grammar.tab.o json-object.o 
+	$(CXX) -o $@ lex.yy.o json-grammar.tab.o json-object.o $(LDLIBS)
 
 lex.yy.o: lex.yy.cc
 	$(CXX) $(CXXFLAGS) -c lex.yy.cc 
 
-lex.yy.c: json-token.cpp.l json-grammar.tab.cc
-	$(LEX) json-token.cpp.l
+lex.yy.c: json-token.cpp.l json-grammar.tab.c
+	$(LEX) json-token.l
 
 lex.yy.cc: json-grammar.tab.cc
-	flex++ json-token.cpp.l
+	$(LEXCPP) json-token.cpp.l
+
+json-grammar.tab.o: json-grammar.tab.cc
+	$(CXX) $(CXXFLAGS) -c -o $@ $<
 
 json-grammar.tab.cc: json-grammar.yy
-	$(YACC) --defines -o $@ json-grammar.yy
+	$(YACC) $(YACCFLAGS) --defines -o $@ json-grammar.yy
 
 clean:
 	$(RM) $(OBJS)

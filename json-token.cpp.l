@@ -1,6 +1,5 @@
 /* -*- c++ -*- */
 %{
-#include "json-object.h"
 #include "json-grammar.tab.hh"
 %}
 
