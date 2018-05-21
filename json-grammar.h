@@ -78,16 +78,13 @@ extern int yydebug;
 
 union YYSTYPE
 {
-#line 14 "json-grammar.y" /* yacc.c:1909  */
+#line 13 "json-grammar.y" /* yacc.c:1909  */
 
 	double jnumber;
 	const char *jstring;
 	char jchar;
-	struct list {
-		
-	} jarray;
 
-#line 91 "json-grammar.h" /* yacc.c:1909  */
+#line 88 "json-grammar.h" /* yacc.c:1909  */
 };
 
 typedef union YYSTYPE YYSTYPE;
