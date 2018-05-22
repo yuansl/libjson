@@ -53,16 +53,22 @@ json_doc:
 	|	json_array  { YYACCEPT; }
 		;
 
-json_object: 	OPENBRACKET members CLOSEBRACKET {sprintf($$, "[%s]",$2); }
+json_object: 	OPENBRACKET members CLOSEBRACKET { sprintf($$, "{%s}",$2); }
 		;
 
 members:
 		%empty
-	|	member seperator members {sprintf($$,"%s,%s",$1,$3);}
+	|	member seperator members {
+		    sprintf($$,"%s,%s",$1,$3);
+		    printf("members:'%s','%s'\n", $1, $3); }
 		;
 member: 	json_pair { strcpy($$,$1); }
 		;
-json_pair: 	json_string COLON json_value { strcpy($$,":");strcat($$,$3); std::cout << $1 << ':' << $3 << '\n'; jobj[$1] = $3; }
+json_pair: 	json_string COLON json_value {
+		    strcpy($$,":");
+		    strcat($$,$3);
+		    std::cout << $1 << ':' << $3 << '\n';
+		    jobj[$1] = $3; }
 		;
 
 seperator:
@@ -72,16 +78,17 @@ seperator:
 
 json_value:
 		json_string { strcpy($$,$1);/* std::cout << "json_string:" << $1 << '\n'; */}
-	|	json_number { sprintf($$, "%f", $1);/* std::cout << "json_number:" << $$ << '\n'; */}
-	|	json_object { strcpy($$,$1);}
-	|	json_array  { strcpy($$,$1);}
+	|	json_number { sprintf($$,"%f",$1);/* std::cout << "json_number:" << $$ << '\n'; */}
+	|	json_object { strcpy($$,$1); }
+	|	json_array  { strcpy($$,$1); }
 	|	TRUE        { strcpy($$,$1); /* std::cout << $1 << '\n'; */ }
 	|	FALSE       { strcpy($$,$1); /* std::cout << $1 << '\n'; */ }
-	|	NIL         { strcpy($$,$1); /* std::cout << $1 << '\n';  */}
+	|	NIL         { strcpy($$,$1); /* std::cout << $1 << '\n'; */ }
 		;
 
-json_array: 	LSQUARE_BRAC elements RSQUARE_BRAC { sprintf($$, "[%s]", $2);
-		    printf("[%s]\n", $2);}
+json_array: 	LSQUARE_BRAC elements RSQUARE_BRAC {
+		    sprintf($$, "[%s]", $2);
+		    printf("[%s]\n", $2); }
 		;
 
 elements:

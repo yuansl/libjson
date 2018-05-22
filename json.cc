@@ -2,8 +2,6 @@
 #include <sys/stat.h>
 #include <unistd.h>
 
-#include <util.h>
-
 #include <FlexLexer.h>
 #include "json-grammar.tab.hh"
 
