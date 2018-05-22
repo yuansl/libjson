@@ -4,30 +4,33 @@
 
 #include <util.h>
 
+#include <FlexLexer.h>
+#include "json-grammar.tab.hh"
+
+#include "json-object.h"
+
 #include "json.h"
 
-// construct a json-object
-json *json::loads(const char *json_contents)
+json::json_object jobj;
+
+FlexLexer *lex_parser = new yyFlexLexer;
+
+int yylex(void)
 {
-    
+    return lex_parser->yylex();
 }
 
-// fd: file descriptor
-json *json::load(int fd)
+int main(void)
 {
-    char *buff;
-    ssize_t nbytes;
-    struct stat st;
+    /* parser start */
+    yyparse();
 
-    memset(&st, 0, sizeof(st));
-    fstat(fd, &st);
-    buff = mmap(NULL, st.st_size, PROT_READ, MAP_PRIVATE, fd, 0);
-    if (buff == MAP_FAILED)
-	err_sys("mmap error");
+    std::cout << "yyparse done\n";
 
-    json *jobj = new json();
+    for (auto &item : jobj)
+	std::cout << item.first << ":" << item.second << '\n';
 
-    munmap(buff, st.st_size);
+    delete lex_parser;
 
-    return jobj;
+    return 0;
 }

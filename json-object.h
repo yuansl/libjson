@@ -64,9 +64,8 @@ namespace json {
 	// move constructor
 	//json_value(json_value &&rvalue) {}
 	
-	json_value(const json_value &rvalue) : value_type(rvalue.value_type), value(rvalue.value) {
-	    // *this = rvalue;
-	    // std::cout << __PRETTY_FUNCTION__ << "::rvalue=" << rvalue << '\n';
+	json_value(const json_value &rvalue) : value_type(rvalue.value_type) {
+	    *this = rvalue;
 	}
 	// copy assignment operator
 	json_value &operator=(const json_value &rvalue);
@@ -78,6 +77,7 @@ namespace json {
 	enum json_type value_type;
 	union _Imp_type {
 	    _Imp_type() {}
+	    ~_Imp_type() {}
 	    _Imp_type(int i) : json_int(i) {}
 	    _Imp_type(char c) : json_char(c) {}
 	    _Imp_type(const char *name) : json_string(name) {}
@@ -85,13 +85,7 @@ namespace json {
 	    _Imp_type(double d) : json_number(d) {}
 	    _Imp_type(std::nullptr_t null) : json_null(null) {}
 	    _Imp_type(bool boolean) : json_bool(boolean) {}
-	    _Imp_type(json_object &jobj) : json_obj(jobj) {
-		// std::cout << __PRETTY_FUNCTION__ << '\n';
-	    }
-	    _Imp_type(const _Imp_type &rvalue) {
-		
-	    }
-	    ~_Imp_type() {}
+	    _Imp_type(json_object &jobj) : json_obj(jobj) {}
 	    char json_char;
 	    int json_int;
 	    double json_number;
@@ -104,5 +98,6 @@ namespace json {
 	friend std::ostream &operator<<(std::ostream &out, const json_value &other);
     };
 }
-extern json::json_object map1;
+
+extern json::json_object jobj;
 #endif

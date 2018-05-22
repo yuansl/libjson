@@ -41,7 +41,7 @@
 // number ->  c++-int
 
 #include <string>
-
+namespace json {
 class json {
 public:
     json() {}
@@ -55,6 +55,7 @@ public:
     void json_parser(const char *json_contents);
 private:
     void *_M_impl;
-};
+};	
+}
 
 #endif

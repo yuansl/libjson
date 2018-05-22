@@ -1,4 +1,4 @@
-#include <cstddef>
+#include <cstdlib>
 
 #include <iostream>
 #include <map>
@@ -6,8 +6,8 @@
 
 #include <FlexLexer.h>
 
-#include "json-object.h"
 #include "json-grammar.tab.hh"
+#include "json-object.h"
 
 namespace json {
     const char *__json_type_desc[] = {
@@ -24,16 +24,12 @@ namespace json {
 
     json_value &json_value::operator=(json_value &&rvalue)
     {
-	// std::cout << __PRETTY_FUNCTION__ << ":::::" << rvalue;
-	
 	*this = rvalue;
 	return *this;
     }
-        
+
     json_value &json_value::operator=(const json_value &rvalue) {
 
-	// std::cout << __PRETTY_FUNCTION__ << "\n";
-	
 	value_type = rvalue.value_type;
 	switch (rvalue.value_type) {
 	case JSON_NULL:
@@ -115,20 +111,4 @@ namespace json {
 	
 	return out;
     }
-}
-json::json_object map1;
-
-FlexLexer *lex_parser = new yyFlexLexer;
-
-int yylex(void)
-{
-    return lex_parser->yylex();
-}
-
-int main(void)
-{
-    /* parser start */
-    yyparse();
-
-    return 0;
 }
