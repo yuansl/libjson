@@ -2,6 +2,7 @@
 
 #include <iostream>
 #include <map>
+#include <vector>
 #include <utility>
 
 #include <FlexLexer.h>
@@ -79,7 +80,7 @@ namespace json {
 	    out << other.value.json_number;
 	    break;
 	case JSON_STRING:
-	    out << '"' << other.value.json_string << '"';
+	    out << other.value.json_string;
 	    break;
 	case JSON_NULL:
 	    out << "null";
@@ -103,7 +104,7 @@ namespace json {
     {
 	out << '{';
 	for (auto it = rvalue._Imp_object.begin(); it != rvalue._Imp_object.end(); it++) {
-	    out << '"' << (*it).first << '"' << ':' << (*it).second;
+	    out << (*it).first << ':' << (*it).second;
 	    if (std::next(it) != rvalue._Imp_object.end())
 		out << ',';
 	}

@@ -31,7 +31,7 @@ json-grammar.c: json-grammar.y
 json2: lex.yy.o json-grammar.tab.o
 	$(CXX) -o $@ lex.yy.o json-grammar.tab.o -lfl
 
-json3: lex.yy.o json.o json-grammar.tab.o json-object.o 
+json3: lex.yy.o json.o json-grammar.tab.o json-object.o json.h
 	$(CXX) -o $@ json.o lex.yy.o json-grammar.tab.o json-object.o $(LDLIBS)
 
 lex.yy.o: lex.yy.cc

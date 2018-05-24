@@ -40,6 +40,7 @@ char tmp[128];
 %type	<jstring> json_pair
 %type	<jstring> json_value
 %type	<jstring> json_object
+%type   <jchar>   seperator
 %type	<jstring> member
 %type	<jstring> members
 %type	<jstring> elements
@@ -56,19 +57,24 @@ json_doc:
 json_object: 	OPENBRACKET members CLOSEBRACKET { sprintf($$, "{%s}",$2); }
 		;
 
-members:
+members[group]:
 		%empty
-	|	member seperator members {
-		    sprintf($$,"%s,%s",$1,$3);
-		    printf("members:'%s','%s'\n", $1, $3); }
+	|	member[first_memb] seperator members[opt] {
+		    strcpy($group, $first_memb);
+		    if ($seperator == ',') {
+			strcat($group, ",");
+			strcat($group,$opt);
+		    }
+		}
 		;
 member: 	json_pair { strcpy($$,$1); }
 		;
+
 json_pair: 	json_string COLON json_value {
-		    strcpy($$,":");
+		    strcpy($$, $1);
+		    strcat($$,":");
 		    strcat($$,$3);
-		    std::cout << $1 << ':' << $3 << '\n';
-		    jobj[$1] = $3; }
+		    jobj[$json_string] = $json_value; }
 		;
 
 seperator:
@@ -78,7 +84,7 @@ seperator:
 
 json_value:
 		json_string { strcpy($$,$1);/* std::cout << "json_string:" << $1 << '\n'; */}
-	|	json_number { sprintf($$,"%f",$1);/* std::cout << "json_number:" << $$ << '\n'; */}
+	|	json_number { sprintf($$,"%f",$1);/* std::cout << "json_number:" << $$ << '\n'; */ }
 	|	json_object { strcpy($$,$1); }
 	|	json_array  { strcpy($$,$1); }
 	|	TRUE        { strcpy($$,$1); /* std::cout << $1 << '\n'; */ }
@@ -86,16 +92,29 @@ json_value:
 	|	NIL         { strcpy($$,$1); /* std::cout << $1 << '\n'; */ }
 		;
 
-json_array: 	LSQUARE_BRAC elements RSQUARE_BRAC {
-		    sprintf($$, "[%s]", $2);
-		    printf("[%s]\n", $2); }
+json_array: 	LSQUARE_BRAC elements RSQUARE_BRAC { sprintf($$, "[%s]", $2); }
 		;
 
 elements:
 		%empty
-	|	element seperator elements { sprintf($$, "%s,%s", $1, $3); }
+	|	element seperator elements {
+		    strcpy($$, $1);
+		    if ($seperator == ',') {
+			strcat($$, ",");
+			strcat($$, $3);
+		    }
+		}
 		;
-element: 	json_value { strcpy($$, $1); }
+element: 	json_value {
+		    strcpy($$, $1);
+		    /* std::cout << "element=" << $element << '\n'; */
+		    if ($element[0] == '{') {
+			json_array.push_back(jobj);
+			jobj.clear();
+		    } else {
+			json_array.push_back($element);
+		    }
+		}
 		;
 
 json_string: 	STRING { strcpy($$,$1);/* std::cout << "string:" << $$ << '\n'; */ }

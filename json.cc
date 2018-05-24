@@ -1,6 +1,5 @@
-#include <sys/mman.h>
-#include <sys/stat.h>
-#include <unistd.h>
+#include <iostream>
+#include <fstream>
 
 #include <FlexLexer.h>
 #include "json-grammar.tab.hh"
@@ -10,16 +9,27 @@
 #include "json.h"
 
 json::json_object jobj;
+std::vector<json::json_value> json_array;
 
-FlexLexer *lex_parser = new yyFlexLexer;
+FlexLexer *lex_parser;
 
 int yylex(void)
 {
     return lex_parser->yylex();
 }
 
-int main(void)
+int main(int argc, char *argv[])
 {
+    if (argc < 1) {
+	fprintf(stderr, "Usage: %s json_file\n", argv[0]);
+	exit(1);
+    }
+
+    json::json json(argv[1]);
+    
+    std::ifstream fp(argv[1]);
+    lex_parser = new yyFlexLexer(fp, std::cout);
+
     /* parser start */
     yyparse();
 
@@ -27,6 +37,10 @@ int main(void)
 
     for (auto &item : jobj)
 	std::cout << item.first << ":" << item.second << '\n';
+
+    std::cout << "json_array in doc:\n";
+    for (auto &item : json_array)
+	std::cout << item << '\n';
 
     delete lex_parser;
 

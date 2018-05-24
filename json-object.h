@@ -1,8 +1,8 @@
 #ifndef JSON_OBJECT_H /* -*- c++ -*- */
 #define JSON_OBJECT_H
 
-#include <iostream>
 #include <map>
+#include <vector>
 namespace json {
     enum json_type {
 	JSON_EMPTY,  // empty object
@@ -16,6 +16,7 @@ namespace json {
 	JSON_BOOL    // true or false
     };
     extern const char *__json_type_desc[];
+
     class json_value;
     class json_object {
     public:
@@ -39,6 +40,7 @@ namespace json {
 	    return _Imp_object[key];
 	}
 	bool empty() const { return _Imp_object.empty(); }
+	void clear() { _Imp_object.clear(); }
 	json_object &operator=(const json_object &rvalue) {
 	    _Imp_object = rvalue._Imp_object;
 	    return *this;
@@ -100,4 +102,6 @@ namespace json {
 }
 
 extern json::json_object jobj;
+extern std::vector<json::json_value> json_array;
+
 #endif

@@ -1,3 +1,4 @@
+// Json implement in -*- c++ -*-
 #ifndef JSON_H
 #define JSON_H
 
@@ -41,21 +42,44 @@
 // number ->  c++-int
 
 #include <string>
+#include <fstream>
+
+#include <FlexLexer.h>
 namespace json {
 class json {
 public:
-    json() {}
+    json(const char *filename) : yyin(filename), flex(new yyFlexLexer(yyin, std::cout)) {}
+    ~json() {
+	yyin.close();
+	if (flex != nullptr)
+	    delete flex;
+    }
     json(const json &rhs) = delete;
     json &operator=(const json &rhs) = delete;
     
-    json *loads(const char *json_contents);
-    json *load(std::string);
+    void loads(const char *json_contents);
+    void load(std::ifstream &newfile) {
+	yyin = newfile;
+	if (flex != nullptr)
+	    delete flex;
+	flex = new yyFlexLexer(yyin, std::cout);
+
+	yyparse();
+    }
+    friend int yylex(FlexLexer *flex = nullptr);
     void dumps(std::string);
 
     void json_parser(const char *json_contents);
+
+    std::string version() const { return "v1.0"; }
 private:
+    std::ifstream yyin;
+    FlexLexer *flex;
+    int json_doc_type = 0;
     void *_M_impl;
-};	
+
+    
+};
 }
 
 #endif
