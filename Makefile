@@ -31,7 +31,7 @@ json-grammar.c: json-grammar.y
 json2: lex.yy.o json-grammar.tab.o
 	$(CXX) -o $@ lex.yy.o json-grammar.tab.o -lfl
 
-json3: lex.yy.o json.o json-grammar.tab.o json-object.o json.h
+json3: lex.yy.o json.o json-grammar.tab.o json-object.o json-object.h json.h
 	$(CXX) -o $@ json.o lex.yy.o json-grammar.tab.o json-object.o $(LDLIBS)
 
 lex.yy.o: lex.yy.cc
@@ -46,7 +46,7 @@ lex.yy.cc: json-grammar.tab.cc
 json-grammar.tab.o: json-grammar.tab.cc
 	$(CXX) $(CXXFLAGS) -c -o $@ $<
 
-json-grammar.tab.cc: json-grammar.yy
+json-grammar.tab.cc: json-object.h json-grammar.yy 
 	$(YACC) $(YACCFLAGS) --defines -o $@ json-grammar.yy
 
 clean:

@@ -1,48 +1,37 @@
 #include <iostream>
-#include <fstream>
-
-#include <FlexLexer.h>
-#include "json-grammar.tab.hh"
-
-#include "json-object.h"
 
 #include "json.h"
 
-json::json_object jobj;
-std::vector<json::json_value> json_array;
-
-FlexLexer *lex_parser;
+FlexLexer *lex_parser = nullptr;
 
 int yylex(void)
 {
-    return lex_parser->yylex();
+    if (lex_parser != nullptr)
+	return lex_parser->yylex();
+    else
+	return EOF;
 }
 
 int main(int argc, char *argv[])
 {
-    if (argc < 1) {
+    if (argc < 2) {
 	fprintf(stderr, "Usage: %s json_file\n", argv[0]);
 	exit(1);
     }
-
-    json::json json(argv[1]);
+    std::cout << "Filename: " << argv[1] << '\n';
     
-    std::ifstream fp(argv[1]);
-    lex_parser = new yyFlexLexer(fp, std::cout);
+    //json::json json(argv[1], &lex_parser);
 
-    /* parser start */
-    yyparse();
+    json::json_array jarray;
+    jarray.push_back(3);
+    jarray.push_back("hello");
 
-    std::cout << "yyparse done\n";
+    json::json_value v = jarray[1];
 
-    for (auto &item : jobj)
-	std::cout << item.first << ":" << item.second << '\n';
+    json::json_value v2 = jarray;
+    v = v2;
 
-    std::cout << "json_array in doc:\n";
-    for (auto &item : json_array)
-	std::cout << item << '\n';
-
-    delete lex_parser;
-
+    std::cout << "v2(" << v << ").type=" << v.type_of() << '\n';
+    
     return 0;
 }

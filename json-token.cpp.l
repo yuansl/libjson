@@ -1,6 +1,9 @@
 /* -*- c++ -*- */
 %{
+#include "json-object.h"
 #include "json-grammar.tab.hh"
+extern bool first_token;
+extern bool doc_type_object;
 %}
 
 %option noyywrap c++
@@ -11,9 +14,9 @@ whitespace [ \t\v\r\n\f]
 %%
 {digit}+(\.{digit}*((E|e)(\+|\-)?)?{digit}*)? {
 	              yylval.jnumber = atof(yytext); return NUMBER; }
-"{"                  {yylval.jchar=yytext[0];        return OPENBRACKET; }
+"{"                  {if (first_token) { first_token = false; } yylval.jchar=yytext[0];        return OPENBRACKET; }
 "}"                  {yylval.jchar=yytext[0];        return CLOSEBRACKET;}
-"["                  {yylval.jchar=yytext[0];        return LSQUARE_BRAC;}
+"["                  { if (first_token) { doc_type_object = false; first_token = false; } yylval.jchar=yytext[0];        return LSQUARE_BRAC;}
 "]"                  {yylval.jchar=yytext[0];        return RSQUARE_BRAC;}
 ":"                  {yylval.jchar=yytext[0];        return COLON;	 }
 ","                  {yylval.jchar=yytext[0];        return COMMA;	 }

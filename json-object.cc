@@ -7,7 +7,7 @@
 
 #include <FlexLexer.h>
 
-#include "json-grammar.tab.hh"
+//#include "json-grammar.tab.hh"
 #include "json-object.h"
 
 namespace json {
@@ -22,6 +22,39 @@ namespace json {
 	[JSON_OBJECT] = "JSON_OBJECT",
 	[JSON_BOOL] = "JSON_BOOL"
     };
+    
+    std::ostream &operator<<(std::ostream &out, const json_object &rvalue)
+    {
+	out << '{';
+#if 0
+	for (auto it = rvalue._Imp_.begin(); it != rvalue._Imp_object.end(); it++) {
+	    out << (*it).first << ':' << (*it).second;
+	    if (std::next(it) != rvalue._Imp_object.end())
+		out << ',';
+	}
+#endif
+	for (auto it = rvalue.begin(); it != rvalue.end(); it=std::next(it)) {
+	    out << (*it).first << ':' << (*it).second;
+	    if (std::next(it) != rvalue.end())
+		out << ',';
+	}
+	    
+	out << '}';
+	
+	return out;
+    }
+
+    std::ostream &operator<<(std::ostream &out, const json_array &array)
+    {
+	out << "[";
+	for (auto it = array.begin(); it != array.end(); it++) {
+	    out << *it;
+	    if (std::next(it) != array.end())
+		out << ',';
+	}
+	out << "]";
+	return out;
+    }
 
     json_value &json_value::operator=(json_value &&rvalue)
     {
@@ -53,6 +86,10 @@ namespace json {
 	case JSON_BOOL:
 	    value.json_bool = rvalue.value.json_bool;
 	    break;
+	case JSON_ARRAY:
+	    new (&value.jarray) json_array;
+	    value.jarray = rvalue.value.jarray;
+	    break;
 	default:
 	    break;
 	}
@@ -80,7 +117,7 @@ namespace json {
 	    out << other.value.json_number;
 	    break;
 	case JSON_STRING:
-	    out << other.value.json_string;
+	    out << '"' << other.value.json_string << '"';
 	    break;
 	case JSON_NULL:
 	    out << "null";
@@ -94,22 +131,12 @@ namespace json {
 	case JSON_OBJECT:
 	    out << other.value.json_obj;
 	    break;
+	case JSON_ARRAY:
+	    out << other.value.jarray;
+	    break;
 	default:
 	    break;
 	}
-	return out;
-    }
-    
-    std::ostream &operator<<(std::ostream &out, const json_object &rvalue)
-    {
-	out << '{';
-	for (auto it = rvalue._Imp_object.begin(); it != rvalue._Imp_object.end(); it++) {
-	    out << (*it).first << ':' << (*it).second;
-	    if (std::next(it) != rvalue._Imp_object.end())
-		out << ',';
-	}
-	out << '}';
-	
 	return out;
     }
 }

@@ -3,6 +3,7 @@
 
 #include <map>
 #include <vector>
+#include <stack>
 namespace json {
     enum json_type {
 	JSON_EMPTY,  // empty object
@@ -18,39 +19,41 @@ namespace json {
     extern const char *__json_type_desc[];
 
     class json_value;
-    class json_object {
-    public:
-	typedef std::string key_type;
-	typedef json_value  value_type;
-	typedef std::map<key_type, value_type> _Imp_type;
-	typedef _Imp_type::iterator iterator;
-	typedef _Imp_type::const_iterator const_iterator;
+    // class json_object {
+    // public:
+    // 	typedef std::string key_type;
+    // 	typedef json_value  value_type;
+    // 	typedef std::map<key_type, value_type> _Imp_type;
+    // 	typedef _Imp_type::iterator iterator;
+    // 	typedef _Imp_type::const_iterator const_iterator;
 	
-	json_object() : _Imp_object() {}
-	json_object(const json_object &rvalue) : _Imp_object(rvalue._Imp_object){
-	    // std::cout << __PRETTY_FUNCTION__ << '\n';
-	}
-	json_object(json_object &&rvalue) : _Imp_object(std::move(rvalue._Imp_object)) {
-	    // std::cout << __PRETTY_FUNCTION__ << '\n';
-	}
+    // 	json_object() : _Imp_object() {}
+    // 	json_object(const json_object &rvalue) : _Imp_object(rvalue._Imp_object){
+    // 	    // std::cout << __PRETTY_FUNCTION__ << '\n';
+    // 	}
+    // 	json_object(json_object &&rvalue) : _Imp_object(std::move(rvalue._Imp_object)) {
+    // 	    // std::cout << __PRETTY_FUNCTION__ << '\n';
+    // 	}
 	
-	iterator begin() { return _Imp_object.begin(); }
-	iterator end() { return _Imp_object.end(); }
-	value_type &operator[](const std::string key) {
-	    return _Imp_object[key];
-	}
-	bool empty() const { return _Imp_object.empty(); }
-	void clear() { _Imp_object.clear(); }
-	json_object &operator=(const json_object &rvalue) {
-	    _Imp_object = rvalue._Imp_object;
-	    return *this;
-	}
+    // 	iterator begin() { return _Imp_object.begin(); }
+    // 	iterator end() { return _Imp_object.end(); }
+    // 	value_type &operator[](const std::string key) {
+    // 	    return _Imp_object[key];
+    // 	}
+    // 	bool empty() const { return _Imp_object.empty(); }
+    // 	void clear() { _Imp_object.clear(); }
+    // 	json_object &operator=(const json_object &rvalue) {
+    // 	    _Imp_object = rvalue._Imp_object;
+    // 	    return *this;
+    // 	}
 
-	friend std::ostream &operator<<(std::ostream &out, const json_object &rvalue);
-    private:
-	_Imp_type _Imp_object;
-    };
-    
+    // 	friend std::ostream &operator<<(std::ostream &out, const json_object &rvalue);
+    // private:
+    // 	_Imp_type _Imp_object;
+    // };
+    typedef std::stack<json_value> json_stack;
+    typedef std::map<std::string, json_value> json_object;
+    typedef std::vector<json_value> json_array;
     struct json_value {
 	json_value() : value_type(JSON_EMPTY), value() {}
 	json_value(double number) : value_type(JSON_NUMBER), value(number) {}
@@ -60,9 +63,8 @@ namespace json {
 	json_value(std::nullptr_t null) : value_type(JSON_NULL), value(null) {}
 	json_value(bool boolean) : value_type(JSON_BOOL), value(boolean) {}
 	json_value(json_object &jobj) : value_type(JSON_OBJECT), value(jobj) {
-	    // std::cout << __PRETTY_FUNCTION__ << "::this=" << *this << '\n';
 	}
-	
+	json_value(json_array &jarray) : value_type(JSON_ARRAY), value(jarray) {}
 	// move constructor
 	//json_value(json_value &&rvalue) {}
 	
@@ -88,6 +90,7 @@ namespace json {
 	    _Imp_type(std::nullptr_t null) : json_null(null) {}
 	    _Imp_type(bool boolean) : json_bool(boolean) {}
 	    _Imp_type(json_object &jobj) : json_obj(jobj) {}
+	    _Imp_type(json_array &jarray) : jarray(jarray) {}
 	    char json_char;
 	    int json_int;
 	    double json_number;
@@ -95,13 +98,15 @@ namespace json {
 	    std::nullptr_t json_null;
 	    bool json_bool;
 	    json_object json_obj;
+	    json_array jarray;
 	} value;
 
 	friend std::ostream &operator<<(std::ostream &out, const json_value &other);
     };
+
 }
 
-extern json::json_object jobj;
-extern std::vector<json::json_value> json_array;
+// extern json::json_object jobj;
+// extern std::vector<json::json_value> json_array;
 
 #endif
