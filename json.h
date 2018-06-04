@@ -43,92 +43,35 @@
 
 #include <string>
 #include <fstream>
-#include <FlexLexer.h>
 
-#include "json-object.h"
+#include "json-value.h"
 
-#include "json-grammar.tab.hh"
+extern json::json_object last_object;
+extern json::json_array last_array;
+extern json::json_stack curr_stack;
 
-extern FlexLexer *lex_parser;
+class FlexLexer;
 namespace json {
-    class json {
-    public:
+    struct json {
 	json() : yyin("/dev/tty"), flex(nullptr) {}
-	json(const char *filename, FlexLexer **lex) : yyin(filename),
-				     flex(new yyFlexLexer(yyin, std::cout)) {
-
-	    *lex = flex;
-
-	    yyparse(jobj, jarray);
-	    
-	    if (!jarray.empty())
-		json_doc_type = JSON_ARRAY;
-	    switch (json_doc_type) {
-	    case JSON_OBJECT:
-		std::cout << "{\n";
-		for (auto it = jobj.begin(); it != jobj.end(); it++) {
-		    std::cout << (*it).first << ':' << (*it).second;
-		    if (std::next(it) != jobj.end())
-			std::cout << ',';
-		    std::cout << "\n";
-		}
-		std::cout << "}\n";
-		break;
-	    case JSON_ARRAY:
-		for (auto &item : jarray)
-		    std::cout << item << '\n';
-		break;
-	    default:
-		break;
-	    }
-	}
-
-	json(const std::string &filename) : yyin(filename),
-				       flex(new yyFlexLexer(yyin, std::cout)) {
-
-	    yyparse(jobj, jarray);
-	}
-	
-	~json() {
-	    if (yyin.is_open())
-		yyin.close();
-	    
-	    if (flex != nullptr)
-		delete flex;
-	}
+	json(const char *filename, FlexLexer **lex); 
+	json(const std::string &filename);
+	~json();
 	json(const json &rhs) = delete;
 	json(json &&) = delete;
 	json &operator=(const json &rhs) = delete;
 	json &operator=(json &&) = delete;
-    
-	json_object loads(const char *json_contents) {
-	    json_object jobj;
-	    
-	    return jobj;
-	}
-	void load(int fd) {
-	    
-	}
-	void load(std::istream &fin) {
-	    flex->switch_streams(fin, std::cout);
-	    if (flex != nullptr)
-		delete flex;
-	    flex = new yyFlexLexer(yyin, std::cout);
-
-	    yyparse(jobj, jarray);
-	}
-	friend int yylex(FlexLexer *flex = nullptr);
+	
+	json_object loads(const char *json_contents);
+	void load(int fd);
+	void load(std::istream &fin);
 	void dumps(std::string);
-
-	void json_parser(const char *json_contents);
-
-	std::string version() const { return "v1.0"; }
+	
+	// friend int yylex(FlexLexer *flex = nullptr);
     private:
 	std::ifstream yyin;
 	FlexLexer *flex;
 	enum json_type json_doc_type = JSON_OBJECT;
-	json_object jobj;
-	json_array jarray;
     };
 }
 

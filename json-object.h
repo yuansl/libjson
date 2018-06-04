@@ -1,112 +1,41 @@
-#ifndef JSON_OBJECT_H /* -*- c++ -*- */
+// json_object implement -*- c++ -*-
+#ifndef JSON_OBJECT_H
 #define JSON_OBJECT_H
 
 #include <map>
-#include <vector>
-#include <stack>
+
 namespace json {
-    enum json_type {
-	JSON_EMPTY,  // empty object
-	JSON_NULL,   // null
-	JSON_INT,    // 000
-	JSON_NUMBER, // 000.000
-	JSON_CHAR,   // 'c'
-	JSON_STRING, // ""
-	JSON_ARRAY,  // []
-	JSON_OBJECT, // {}
-	JSON_BOOL    // true or false
+    struct json_value;
+    class json_object {
+    	typedef std::string key_type;
+    	typedef json_value  value_type;
+    	typedef std::map<key_type, value_type> _Impl_type;
+    	typedef _Impl_type::iterator iterator;
+    	typedef _Impl_type::const_iterator const_iterator;
+    public:
+    	json_object();
+    	json_object(const json_object &rvalue);
+    	json_object(json_object &&rvalue);
+	json_object(const value_type &var);
+	
+    	iterator begin() { return _Impl_object.begin(); }
+    	iterator end() { return _Impl_object.end(); }
+	const_iterator begin() const { return _Impl_object.begin(); }
+	const_iterator end() const { return _Impl_object.end(); }
+    	value_type &operator[](const key_type key) {
+    	    return _Impl_object[key];
+    	}
+    	bool empty() const { return _Impl_object.empty(); }
+    	void clear() { _Impl_object.clear(); }
+    	json_object &operator=(const json_object &rvalue) {
+    	    _Impl_object = rvalue._Impl_object;
+    	    return *this;
+    	}
+
+    	friend std::ostream &operator<<(std::ostream &out, const json_object &rvalue);
+    private:
+    	_Impl_type _Impl_object;
     };
-    extern const char *__json_type_desc[];
-
-    class json_value;
-    // class json_object {
-    // public:
-    // 	typedef std::string key_type;
-    // 	typedef json_value  value_type;
-    // 	typedef std::map<key_type, value_type> _Imp_type;
-    // 	typedef _Imp_type::iterator iterator;
-    // 	typedef _Imp_type::const_iterator const_iterator;
-	
-    // 	json_object() : _Imp_object() {}
-    // 	json_object(const json_object &rvalue) : _Imp_object(rvalue._Imp_object){
-    // 	    // std::cout << __PRETTY_FUNCTION__ << '\n';
-    // 	}
-    // 	json_object(json_object &&rvalue) : _Imp_object(std::move(rvalue._Imp_object)) {
-    // 	    // std::cout << __PRETTY_FUNCTION__ << '\n';
-    // 	}
-	
-    // 	iterator begin() { return _Imp_object.begin(); }
-    // 	iterator end() { return _Imp_object.end(); }
-    // 	value_type &operator[](const std::string key) {
-    // 	    return _Imp_object[key];
-    // 	}
-    // 	bool empty() const { return _Imp_object.empty(); }
-    // 	void clear() { _Imp_object.clear(); }
-    // 	json_object &operator=(const json_object &rvalue) {
-    // 	    _Imp_object = rvalue._Imp_object;
-    // 	    return *this;
-    // 	}
-
-    // 	friend std::ostream &operator<<(std::ostream &out, const json_object &rvalue);
-    // private:
-    // 	_Imp_type _Imp_object;
-    // };
-    typedef std::stack<json_value> json_stack;
-    typedef std::map<std::string, json_value> json_object;
-    typedef std::vector<json_value> json_array;
-    struct json_value {
-	json_value() : value_type(JSON_EMPTY), value() {}
-	json_value(double number) : value_type(JSON_NUMBER), value(number) {}
-	json_value(int integer) : value_type(JSON_INT), value(integer) {}
-	json_value(const char *str) : value_type(JSON_STRING), value(str) {}
-	json_value(std::string &str) : value_type(JSON_STRING), value(str) {}
-	json_value(std::nullptr_t null) : value_type(JSON_NULL), value(null) {}
-	json_value(bool boolean) : value_type(JSON_BOOL), value(boolean) {}
-	json_value(json_object &jobj) : value_type(JSON_OBJECT), value(jobj) {
-	}
-	json_value(json_array &jarray) : value_type(JSON_ARRAY), value(jarray) {}
-	// move constructor
-	//json_value(json_value &&rvalue) {}
-	
-	json_value(const json_value &rvalue) : value_type(rvalue.value_type) {
-	    *this = rvalue;
-	}
-	// copy assignment operator
-	json_value &operator=(const json_value &rvalue);
-	// move assignment operator
-	json_value &operator=(json_value &&rvalue);
-
-	const char *type_of(void);
-	
-	enum json_type value_type;
-	union _Imp_type {
-	    _Imp_type() {}
-	    ~_Imp_type() {}
-	    _Imp_type(int i) : json_int(i) {}
-	    _Imp_type(char c) : json_char(c) {}
-	    _Imp_type(const char *name) : json_string(name) {}
-	    _Imp_type(std::string &name) : json_string(name) {}
-	    _Imp_type(double d) : json_number(d) {}
-	    _Imp_type(std::nullptr_t null) : json_null(null) {}
-	    _Imp_type(bool boolean) : json_bool(boolean) {}
-	    _Imp_type(json_object &jobj) : json_obj(jobj) {}
-	    _Imp_type(json_array &jarray) : jarray(jarray) {}
-	    char json_char;
-	    int json_int;
-	    double json_number;
-	    std::string json_string;
-	    std::nullptr_t json_null;
-	    bool json_bool;
-	    json_object json_obj;
-	    json_array jarray;
-	} value;
-
-	friend std::ostream &operator<<(std::ostream &out, const json_value &other);
-    };
-
 }
-
-// extern json::json_object jobj;
-// extern std::vector<json::json_value> json_array;
 
 #endif
