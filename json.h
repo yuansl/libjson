@@ -53,7 +53,7 @@ extern json::json_stack curr_stack;
 class FlexLexer;
 namespace json {
     struct json {
-	json() : yyin("/dev/tty"), flex(nullptr) {}
+	json() : yyin("/dev/tty"), flex(new yyFlexLexer) {}
 	json(const char *filename, FlexLexer **lex); 
 	json(const std::string &filename);
 	~json();
@@ -62,11 +62,11 @@ namespace json {
 	json &operator=(const json &rhs) = delete;
 	json &operator=(json &&) = delete;
 	
-	json_object loads(const char *json_contents);
 	void load(int fd);
 	void load(std::istream &fin);
 	void dumps(std::string);
 	
+	static json_value loads(const char *json_contents);
 	// friend int yylex(FlexLexer *flex = nullptr);
     private:
 	std::ifstream yyin;

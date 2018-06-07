@@ -1,4 +1,5 @@
 #include <iostream>
+#include <sstream>
 #include <FlexLexer.h>
 #include "json.h"
 #include "json-grammar.tab.hh"	// for yyparse
@@ -26,22 +27,34 @@ namespace json {
 	::yyparse(last_object, last_array);
     }
     
-    json::~json() {
-	if (yyin.is_open())
-	    yyin.close();
-	    
-	if (flex != nullptr)
-	    delete flex;
-    }
-
-    void json::load(std::istream &fin)
+    json::~json()
     {
-	flex->switch_streams(fin, std::cout);
 	if (flex != nullptr)
 	    delete flex;
-	flex = new yyFlexLexer(yyin, std::cout);
-
+	flex = nullptr;
+    }
+    
+    void json::load(std::istream &sin)
+    {
+	if (flex == nullptr) {
+	    std::cerr << "Fatal error: flex may be not initialized!\n";
+	    return;
+	}
+	flex->switch_streams(sin, std::cout);
 	::yyparse(last_object, last_array);
+    }
+    
+    json_value loads(const char *json_contents)
+    {
+	json json;
+	std::stringstream sout;
+
+	sout << json_contents;
+	json.load(sout);
+	if (!last_object.empty())
+	    return last_object;
+	else
+	    return last_array;
     }
 }
 
@@ -68,15 +81,10 @@ int main(int argc, char *argv[])
     std::cout << "Filename: " << argv[1] << '\n';
 #endif
 
-    json::json json(argv[1], &lex_parser);
-    using namespace std;
-    cout << "json parsed result:\n";
-    cout << "'";
-    if (!last_object.empty()) {
-	cout << last_object << '\n';
-    } else {
-	cout << last_array << '\n';
-    }
-    cout << "'\n";
+    json::json_value val = json::loads("{}");
+
+    std::cout << "Result:\n";
+    std::cout << "last object=" << last_object << '\n';
+    
     return 0;
 }
